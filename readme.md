@@ -12,7 +12,7 @@ the method to compile and run the code:
 bash exec.sh # you need to enter
 # then exec.sh will give you a hint:
 please enter the executable file name:
-# you need to enter the any file name you like to generate obj file
+# you need to enter any file name you like to generate the obj file
 test
 # then result will give
 ...
