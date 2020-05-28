@@ -511,10 +511,12 @@ void BPlusTree<T>::_insert_detail(const T &key, TreeNode<T> *pNodeLeft, TreeNode
             if (obj->isFull())
             {
                 T newKey;
+                //使用理由同上
+                TreeNode<T> *pOldNode = obj;
                 TreeNode<T> *pNewNode = obj->_split(newKey);
                 // for inner node, first key in new node will be upper insert
                 pNewNode->keys.erase(pNewNode->keys.begin());
-                _insert_detail(newKey, obj, pNewNode, obj->parent);
+                _insert_detail(newKey, pOldNode, pNewNode, pOldNode->parent);
             }
             return;
         }
