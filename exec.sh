@@ -6,7 +6,7 @@ read -p "please enter the executable file name: " exec_name
 
 # find all '.cpp' file and compile and generate exec file 
     compile="g++"
-    for filename in $(ls *); do
+    for filename in $(ls .); do
         if [ "${filename##*.}" = "cpp" ]; then
             compile="${compile} ${filename}"
         fi
@@ -19,17 +19,3 @@ read -p "please enter the executable file name: " exec_name
 
 # run the exec file
 eval "./$exec_name"
-
-
-
-
-#if [ ! -f $filename ]; then
-#    eval "g++ main.cpp API.cpp Attribute.cpp BufferManager.cpp CatalogManager.cpp Condition.cpp IndexManager.cpp Interpreter.cpp RecordManager.cpp -std=c++11 -o main"
-#    echo "complier...exec...$filename"
-#    eval "./main"
-#else
-#    echo "exec...$filename"
-#    eval "./main"
-#fi
-
-

@@ -287,8 +287,10 @@ TreeNode<T> *TreeNode<T>::_split(T &key)
         // the first key in new node will be upper level later
         auto iter_p = this->pointers.begin() + minKeyNum + 1;
         newNode->pointers.assign(iter_p, this->pointers.end());
+        // must update newNode's child's parent!
+        for (int i = 0; i < newNode->pointers.size(); i++)
+            newNode->pointers[i]->parent = newNode;
         this->pointers.erase(iter_p, this->pointers.end());
-        // no address
 
         newNode->next = this->next;
         this->next = newNode;
@@ -329,6 +331,8 @@ public:
     void _write_disk();
     // print leaf nodes
     void _print_leaf();
+    // print every level nodes
+    void _print_every_level();
     // detial operation
     TreeNode<T> *_find_detial(TreeNode<T> *pNode, const T &key, int &value);
     void _insert_detail(const T &key, TreeNode<T> *pNodeLeft, TreeNode<T> *pNodeRight, TreeNode<T> *&obj);
@@ -476,10 +480,13 @@ void BPlusTree<T>::_insert_detail(const T &key, TreeNode<T> *pNodeLeft, TreeNode
             if (obj->isFull())
             {
                 T newKey;
+                // use pOldNode store origin obj
+                // 很奇怪的现象，obj->_split(newKey)之后，obj本身也发生了变化，变成了pNewNode，但_split函数并不会对obj本身做修改，而调试的时候在_split函数内部obj地址也没变，一旦出了这个函数，obj地址立马就变了，很疑惑...暂时找不到原因，因此用pOldNode保存obj原先的值来暂时处理
+                TreeNode<T> *pOldNode = obj;
                 TreeNode<T> *pNewNode = obj->_split(newKey);
                 // for inner node, first key in new node will be upper insert
                 pNewNode->keys.erase(pNewNode->keys.begin());
-                _insert_detail(newKey, obj, pNewNode, obj->parent);
+                _insert_detail(newKey, pOldNode, pNewNode, pOldNode->parent);
             }
             return;
         }
@@ -491,6 +498,8 @@ void BPlusTree<T>::_insert_detail(const T &key, TreeNode<T> *pNodeLeft, TreeNode
         if (obj == NULL)
         {
             obj = new TreeNode<T>(this->order, false);
+            // update right's parent
+            pNodeRight->parent = obj;
             obj->_insert(key, pNodeRight, pNodeLeft);
             this->root = obj;
             return;
@@ -761,18 +770,21 @@ bool BPlusTree<T>::_remove_detial(TreeNode<T> *&pNode)
 template <typename T>
 void BPlusTree<T>::_drop_BT(TreeNode<T> *pNode)
 {
-    if (!pNode)
-        return;
-    if (!pNode->isLeaf)
-    {
-        for (int i = 0; i < pNode->pointers.size(); i++)
-            _drop_BT(pNode->pointers[i]);
-        delete pNode;
-    }
-    else
-    {
-        delete pNode;
-    }
+    // if (pNode == NULL)
+    //     return;
+    // if (!pNode->isLeaf)
+    // {
+    //     for (int i = 0; i < pNode->pointers.size(); i++)
+    //     {
+    //         _drop_BT(pNode->pointers[i]);
+    //         pNode->pointers[i] = NULL;
+    //     }
+    //     delete pNode;
+    // }
+    // else
+    // {
+    //     delete pNode;
+    // }
     return;
 }
 
@@ -787,4 +799,34 @@ void BPlusTree<T>::_print_leaf()
         cout << endl;
         pLeaf = pLeaf->next;
     }
+}
+
+template <typename T>
+void BPlusTree<T>::_print_every_level()
+{
+    TreeNode<T> *pNextLevel = this->root->pointers[0];
+    TreeNode<T> *nowLevel = this->root;
+    do
+    {
+        while (nowLevel)
+        {
+            for (int i = 0; i < nowLevel->keys.size(); i++)
+                cout << nowLevel->keys[i] << " ";
+            cout << "  ";
+            nowLevel = nowLevel->next;
+        }
+        cout << endl;
+        nowLevel = pNextLevel;
+        if (!pNextLevel->isLeaf)
+            pNextLevel = pNextLevel->pointers[0];
+    } while (!nowLevel->isLeaf);
+    // for leaf
+    while (nowLevel)
+    {
+        for (int i = 0; i < nowLevel->keys.size(); i++)
+            cout << nowLevel->keys[i] << " ";
+        cout << " ";
+        nowLevel = nowLevel->next;
+    }
+    cout << endl;
 }
