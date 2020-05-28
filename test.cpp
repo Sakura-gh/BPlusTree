@@ -3,6 +3,7 @@
 int main()
 {
     BPlusTree<int> bpt("test", 5, sizeof(int));
+    cout << endl;
     bpt._insert_BT(5, 5);
     bpt._insert_BT(8, 8);
     bpt._insert_BT(10, 10);
@@ -17,11 +18,15 @@ int main()
     bpt._insert_BT(21, 21);
     bpt._insert_BT(22, 22);
     bpt._insert_BT(7, 7);
+    cout << "after insert, key in every leaf node:" << endl;
     bpt._print_leaf();
+
+    cout << endl;
 
     bpt._remove_BT(22);
     bpt._remove_BT(15);
     bpt._remove_BT(7);
+    cout << "after remove, key in every leaf node:" << endl;
     bpt._print_leaf();
 
     return 0;
