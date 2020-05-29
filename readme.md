@@ -1,10 +1,10 @@
 ### BPlusTree Template Class
 
-this template class `BPlusTree.h` realise almost functions of bplustree
+this template class `BPlusTree.h` implemented most functions of bplustree
 
-it's suitable for any order, any data type, and any case.
+it's suitable for any order and any data type.
 
-`test.cpp` offers a simple test for `BPlusTree.h`
+`test.cpp` gives a simple test for `BPlusTree.h`
 
 the method to compile and run the code:
 (open your ternimal firstly)
