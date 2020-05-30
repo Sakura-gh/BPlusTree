@@ -4,18 +4,71 @@
 // created by gehao on 2020/5/23
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef _BPLUSTREE_H
+#define _BPLUSTREE_H
+
+#include "basis.h"
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <unistd.h> // 注意：在linux下为unistd.h，否则换为io.h
+// #include <io.h>
+#include <sys/stat.h> // 注意：linux下的mkdir函数，如果是其他系统，换成direct.h
+// #include <direct.h>
 
 using namespace std;
 
-// decalare
+// decalare treenode class
 template <typename T>
-class BPlusTree;
+class TreeNode;
 
-/////////////////////////////////TreeNode///////////////////////////////
+template <typename T>
+class BPlusTree
+{
+public:
+    // constructor
+    BPlusTree(string fileName, int order, int type);
+    // destructor
+    ~BPlusTree();
+    // find the address of record with key
+    int _find_BT(const T &key);
+    // insert address with key into bplustree
+    bool _insert_BT(const T &key, const int &address);
+    // remove key from bplustree
+    bool _remove_BT(const T &key);
+    // drop all the tree
+    void _drop_BT(TreeNode<T> *pNode);
+    // print leaf nodes
+    void _print_leaf();
+    // print every level nodes
+    void _print_every_level();
+    // detial operation
+    TreeNode<T> *_find_detial(TreeNode<T> *pNode, const T &key, int &value);
+    void _insert_detail(const T &key, TreeNode<T> *pNodeLeft, TreeNode<T> *pNodeRight, TreeNode<T> *&obj);
+    bool _remove_detial(TreeNode<T> *&pNode);
+
+    // initial bplustree by read data from disk
+    void _init_from_disk();
+    // read data from disk
+    void _read_disk();
+    // write data to disk
+    void _write_disk();
+
+private:
+    // file to read/write
+    string fileName;
+    // pointer to root of the tree
+    TreeNode<T> *root;
+    // pointer to leaf level of the tree
+    TreeNode<T> *leaf;
+    // order of BPlusTree
+    int order;
+    // type of key
+    int type;
+};
+
 template <typename T>
 class TreeNode
 {
@@ -67,6 +120,7 @@ private:
     friend class BPlusTree<T>;
 };
 
+/////////////////////////////////TreeNode///////////////////////////////
 template <typename T>
 inline TreeNode<T>::TreeNode(int order, bool isLeaf) : order(order), isLeaf(isLeaf)
 {
@@ -307,67 +361,96 @@ TreeNode<T> *TreeNode<T>::nextNode()
     return next;
 }
 
-////////////////////////////////BPlusTree////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////BPlusTree////////////////////////////////
 
 template <typename T>
-class BPlusTree
-{
-public:
-    // constructor
-    BPlusTree(string fileName, int order, int keySize);
-    // destructor
-    ~BPlusTree();
-    // find the address of record with key
-    int _find_BT(const T &key);
-    // insert address with key into bplustree
-    bool _insert_BT(const T &key, const int &address);
-    // remove key from bplustree
-    bool _remove_BT(const T &key);
-    // drop all the tree
-    void _drop_BT(TreeNode<T> *pNode);
-    // read data from disk
-    void _read_disk();
-    // write data to disk
-    void _write_disk();
-    // print leaf nodes
-    void _print_leaf();
-    // print every level nodes
-    void _print_every_level();
-    // detial operation
-    TreeNode<T> *_find_detial(TreeNode<T> *pNode, const T &key, int &value);
-    void _insert_detail(const T &key, TreeNode<T> *pNodeLeft, TreeNode<T> *pNodeRight, TreeNode<T> *&obj);
-    bool _remove_detial(TreeNode<T> *&pNode);
-
-private:
-    // file to read/write
-    string fileName;
-    // pointer to root of the tree
-    TreeNode<T> *root;
-    // pointer to leaf level of the tree
-    TreeNode<T> *leaf;
-    // order of BPlusTree
-    int order;
-    // size of key
-    int keySize;
-};
-
-template <typename T>
-BPlusTree<T>::BPlusTree(string fileName, int order, int keySize) : fileName(fileName), order(order), keySize(keySize)
+BPlusTree<T>::BPlusTree(string fileName, int order, int type) : fileName(fileName), order(order), type(type)
 {
     this->root = new TreeNode<T>(order, true);
     this->leaf = this->root;
-    // _read_disk();
+    _init_from_disk();
 }
 
 template <typename T>
+void BPlusTree<T>::_init_from_disk()
+{
+    string _fileName = "./index/" + this->fileName;
+
+    // if index file exists, then read and init bplustree
+    if (access(_fileName.c_str(), 0) != -1)
+    {
+
+        string str;
+        T key;
+        int value;
+        vector<string> result;
+
+        // read data from disk, insert to bplustree
+        ifstream _in;
+        _in.open(_fileName);
+        while (getline(_in, str))
+        {
+            result = split(str, " ");
+            if (this->type == INT)
+                key = stoi(result[0]);
+            else if (this->type == FLOAT)
+                key = stof(result[0]);
+            else if (this->type > 0 && this->type <= 255)
+                string(key) = result[0];
+            else
+                cout << "ERROR TYPE!" << endl;
+
+            value = stoi(result[1]);
+            _insert_BT(key, value);
+        }
+        _in.close();
+    }
+}
+
+// read one page, realised by
+template <typename T>
 void BPlusTree<T>::_read_disk()
 {
-    // string fname = './source/index/' + this->fileName;
+    T key;
+    int value;
+    ;
+}
+
+// just store {key:value} to file for test
+// need buffer manager to realise the whole function
+template <typename T>
+void BPlusTree<T>::_write_disk()
+{
+    string _dir = "./index/";
+    string _fileName = _dir + this->fileName;
+
+    // 下面的access和mkdir是linux下的写法，如果是其他系统，使用_access(_dir.c_str(), 0)和_mkdir(_dir.c_str());即可
+    // if dir not exists, mkdir
+    if (access(_dir.c_str(), 0) == -1)
+        mkdir(_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+    // write data to disk
+    ofstream _out;
+    _out.open(_fileName);
+    TreeNode<T> *pLeaf = this->leaf;
+    while (pLeaf)
+    {
+        for (int i = 0; i < pLeaf->keys.size(); i++)
+        {
+            _out << pLeaf->keys[i] << " " << pLeaf->address[i] << endl;
+        }
+        pLeaf = pLeaf->next;
+    }
+    _out.close();
 }
 
 template <typename T>
 BPlusTree<T>::~BPlusTree()
 {
+    // write data to disk
+    _write_disk();
     _drop_BT(this->root);
 }
 
@@ -832,3 +915,7 @@ void BPlusTree<T>::_print_every_level()
     }
     cout << endl;
 }
+
+/////////////////////////////////////////////////////////////////////////
+
+#endif

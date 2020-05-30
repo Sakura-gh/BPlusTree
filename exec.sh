@@ -11,11 +11,14 @@ read -p "please enter the executable file name: " exec_name
             compile="${compile} ${filename}"
         fi
     done
-    compile="${compile} -std=c++11 -o ${exec_name}"
-    echo "compile...$complie"
+    compile="${compile} -std=c++11 -o ${exec_name}.o"
+    echo "$compile"
+    echo "compile..."
     eval $compile
 
 # fi
 
 # run the exec file
-eval "./$exec_name"
+echo "./${exec_name}.o"
+echo -e "execute...\n"
+eval "./${exec_name}.o"
