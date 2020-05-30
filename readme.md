@@ -4,7 +4,7 @@
 
 This template class `BPlusTree.h` implemented most functions of bplustree. It's suitable for any order and any data type.
 
-Now I have used `BPlusTree.h` to Implement function interface for minisql with file:
+Now I have used `BPlusTree.h` to Implement function interface for minisql with file management:
 
 - `IndexManager.h` and `IndexManager.cpp`：the interface for minisql
 - `BPlusTree.h`：implement the bplustree and store {key: value} in file named `./index/`
